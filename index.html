@@ -19,9 +19,7 @@
     --text:     #b8d4b8;
     --border:   #1e2e1e;
   }
-
   * { margin:0; padding:0; box-sizing:border-box; }
-
   html, body {
     height: 100%;
     background: var(--bg);
@@ -30,40 +28,26 @@
     font-size: 13px;
     line-height: 1.6;
   }
-
-  /* Scanline overlay */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
     pointer-events: none;
     z-index: 1000;
   }
-
   .terminal {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 32px 24px 80px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    gap: 0;
   }
-
-  /* ── Header ──────────────────────────────── */
   .t-header {
     border-bottom: 1px solid var(--border);
     padding-bottom: 20px;
-    margin-bottom: 24px;
   }
-
   .ascii-logo {
     color: var(--green);
     font-size: 11px;
@@ -72,18 +56,37 @@
     text-shadow: 0 0 10px rgba(57,255,132,0.3);
     margin-bottom: 8px;
   }
+  .t-tagline { color: var(--dim); font-size: 11px; letter-spacing: 0.1em; }
 
-  .t-tagline {
+  /* tabs */
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
     color: var(--dim);
+    font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.1em;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: -1px;
   }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); text-shadow: 0 0 8px rgba(57,255,132,0.3); }
 
-  /* ── Prompt ──────────────────────────────── */
+  .tab-panel { display: none; padding-top: 24px; flex: 1; flex-direction: column; }
+  .tab-panel.active { display: flex; }
+
+  /* prompt */
   .prompt-row {
     display: flex;
     align-items: center;
-    gap: 0;
     margin-bottom: 28px;
     background: var(--bg2);
     border: 1px solid var(--border);
@@ -91,32 +94,10 @@
     padding: 10px 14px;
     transition: border-color 0.2s;
   }
-  .prompt-row:focus-within {
-    border-color: var(--green-dim);
-    box-shadow: 0 0 0 1px var(--green-dim), 0 0 16px rgba(57,255,132,0.05);
-  }
-
-  .prompt-prefix {
-    color: var(--green);
-    margin-right: 8px;
-    flex-shrink: 0;
-    font-weight: 500;
-    text-shadow: 0 0 8px rgba(57,255,132,0.4);
-  }
-
-  .prompt-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    caret-color: var(--green);
-  }
-
+  .prompt-row:focus-within { border-color: var(--green-dim); box-shadow: 0 0 0 1px var(--green-dim), 0 0 16px rgba(57,255,132,0.05); }
+  .prompt-prefix { color: var(--green); margin-right: 8px; flex-shrink: 0; font-weight: 500; text-shadow: 0 0 8px rgba(57,255,132,0.4); }
+  .prompt-input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:13px; caret-color:var(--green); }
   .prompt-input::placeholder { color: var(--dim); }
-
   .run-btn {
     background: transparent;
     border: 1px solid var(--green-dim);
@@ -131,171 +112,395 @@
     flex-shrink: 0;
     margin-left: 12px;
   }
-  .run-btn:hover {
-    background: rgba(57,255,132,0.08);
-    border-color: var(--green);
-    box-shadow: 0 0 8px rgba(57,255,132,0.2);
-  }
-  .run-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
+  .run-btn:hover { background: rgba(57,255,132,0.08); border-color: var(--green); box-shadow: 0 0 8px rgba(57,255,132,0.2); }
+  .run-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* ── Output ──────────────────────────────── */
-  #output {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
+  /* scan output */
+  #output { flex:1; display:flex; flex-direction:column; }
+  .line { display:block; padding:1px 0; animation:fadeIn 0.08s ease forwards; white-space:pre-wrap; word-break:break-all; }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(-4px)} to{opacity:1;transform:translateX(0)} }
+  .l-section { color:var(--cyan); margin-top:20px; margin-bottom:4px; font-weight:700; font-size:11px; letter-spacing:0.12em; }
+  .l-pass{color:var(--green)} .l-warn{color:var(--yellow)} .l-fail{color:var(--red)} .l-info{color:var(--text)} .l-dim{color:var(--dim)} .l-url{color:var(--cyan)}
+  .badge-pass{color:var(--green);font-weight:700} .badge-warn{color:var(--yellow);font-weight:700} .badge-fail{color:var(--red);font-weight:700} .badge-info{color:var(--cyan)}
+  .og-preview { border:1px solid var(--border); border-radius:4px; padding:12px; margin:8px 0; background:var(--bg2); display:flex; gap:14px; align-items:flex-start; max-width:480px; }
+  .og-thumb { width:100px; height:56px; object-fit:cover; border-radius:3px; flex-shrink:0; background:var(--border); }
+  .og-meta{flex:1;min-width:0} .og-title{color:var(--text);font-size:12px;font-weight:600;margin-bottom:3px} .og-desc{color:var(--dim);font-size:11px;line-height:1.4} .og-site{color:var(--green-dim);font-size:10px;margin-top:4px}
+  .spinner{display:inline-block;animation:spin 0.6s linear infinite}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .cursor{display:inline-block;width:8px;height:14px;background:var(--green);vertical-align:middle;animation:blink 1s step-end infinite;margin-left:2px}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-  .line {
-    display: block;
-    padding: 1px 0;
-    animation: fadeIn 0.1s ease forwards;
-    white-space: pre-wrap;
-    word-break: break-all;
+  /* ═══ EMBED TESTER ═══ */
+  .embed-layout { display:grid; grid-template-columns:1fr 320px; gap:16px; flex:1; }
+  .embed-preview-col { display:flex; flex-direction:column; gap:12px; }
+  .embed-options { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .size-label { color:var(--dim); font-size:11px; }
+  .size-btn {
+    background:transparent; border:1px solid var(--border); color:var(--dim);
+    font-family:'JetBrains Mono',monospace; font-size:10px; padding:3px 10px;
+    border-radius:3px; cursor:pointer; transition:all 0.15s; letter-spacing:0.06em;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateX(-4px); }
-    to   { opacity: 1; transform: translateX(0); }
+  .size-btn:hover { border-color:var(--green-dim); color:var(--text); }
+  .size-btn.active { border-color:var(--green); color:var(--green); background:rgba(57,255,132,0.06); }
+  .iframe-wrapper {
+    background:var(--bg2); border:1px solid var(--border); border-radius:4px;
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+    min-height:100px; transition:height 0.3s; position:relative;
   }
-
-  /* Line types */
-  .l-section {
-    color: var(--cyan);
-    margin-top: 20px;
-    margin-bottom: 4px;
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.12em;
+  .iframe-wrapper.size-compact { height:100px; }
+  .iframe-wrapper.size-normal  { height:380px; }
+  .iframe-wrapper.size-full    { height:560px; }
+  .iframe-placeholder { color:var(--dim); font-size:11px; text-align:center; padding:20px; }
+  #embedIframe { width:100%; height:100%; border:none; display:block; }
+  .embed-status { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--dim); }
+  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; transition:background 0.3s; }
+  .status-dot.connected { background:var(--green); box-shadow:0 0 6px rgba(57,255,132,0.5); animation:pulse 2s ease-in-out infinite; }
+  .status-dot.error { background:var(--red); }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+  .embed-control-col { display:flex; flex-direction:column; gap:12px; }
+  .ctrl-section-title { color:var(--cyan); font-size:10px; letter-spacing:0.12em; font-weight:700; margin-bottom:6px; }
+  .ctrl-box { background:var(--bg2); border:1px solid var(--border); border-radius:4px; padding:12px; }
+  .transport { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:10px; }
+  .t-btn {
+    background:transparent; border:1px solid var(--border); color:var(--text);
+    font-family:'JetBrains Mono',monospace; font-size:14px; padding:8px 4px;
+    border-radius:3px; cursor:pointer; transition:all 0.12s; text-align:center;
   }
-
-  .l-divider { color: var(--dim); }
-
-  .l-pass   { color: var(--green); }
-  .l-warn   { color: var(--yellow); }
-  .l-fail   { color: var(--red); }
-  .l-info   { color: var(--text); }
-  .l-dim    { color: var(--dim); }
-  .l-url    { color: var(--cyan); }
-
-  .badge-pass { color: var(--green); font-weight: 700; }
-  .badge-warn { color: var(--yellow); font-weight: 700; }
-  .badge-fail { color: var(--red); font-weight: 700; }
-  .badge-info { color: var(--cyan); }
-
-  /* OG Preview */
-  .og-preview {
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 12px;
-    margin: 8px 0;
-    background: var(--bg2);
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    max-width: 480px;
-  }
-  .og-thumb {
-    width: 100px;
-    height: 56px;
-    object-fit: cover;
-    border-radius: 3px;
-    flex-shrink: 0;
-    background: var(--border);
-  }
-  .og-meta { flex: 1; min-width: 0; }
-  .og-title { color: var(--text); font-size: 12px; font-weight: 600; margin-bottom: 3px; }
-  .og-desc  { color: var(--dim); font-size: 11px; line-height: 1.4; }
-  .og-site  { color: var(--green-dim); font-size: 10px; margin-top: 4px; }
-
-  /* Score bar */
-  .score-bar {
-    display: inline-block;
-    height: 6px;
-    border-radius: 3px;
-    vertical-align: middle;
-    margin-left: 8px;
-  }
-
-  /* Spinner */
-  .spinner {
-    display: inline-block;
-    animation: spin 0.6s linear infinite;
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  /* Cursor blink */
-  .cursor {
-    display: inline-block;
-    width: 8px;
-    height: 14px;
-    background: var(--green);
-    vertical-align: middle;
-    animation: blink 1s step-end infinite;
-    margin-left: 2px;
-  }
-  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
-
-  /* Summary box */
-  .summary-box {
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px 16px;
-    margin-top: 20px;
-    background: var(--bg2);
-  }
-
-  @media (max-width: 640px) {
-    .terminal { padding: 16px 12px 60px; }
-    .ascii-logo { font-size: 9px; }
-  }
+  .t-btn:hover { border-color:var(--green-dim); color:var(--green); background:rgba(57,255,132,0.05); }
+  .t-btn:active { transform:scale(0.95); }
+  .t-btn.play-btn { border-color:var(--green-dim); color:var(--green); }
+  .t-btn.play-btn:hover { background:rgba(57,255,132,0.12); }
+  .ctrl-row { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:11px; }
+  .ctrl-row-label { color:var(--dim); width:50px; flex-shrink:0; }
+  input[type=range] { flex:1; -webkit-appearance:none; height:3px; background:var(--border); border-radius:2px; outline:none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--green); cursor:pointer; box-shadow:0 0 4px rgba(57,255,132,0.4); }
+  .ctrl-row-val { color:var(--text); width:32px; text-align:right; font-size:11px; }
+  .now-playing { display:flex; gap:10px; align-items:flex-start; margin-top:10px; }
+  #npThumb { width:56px; height:36px; object-fit:cover; border-radius:3px; background:var(--border); flex-shrink:0; }
+  .np-info{flex:1;min-width:0}
+  .np-title{color:var(--text);font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .np-sub{color:var(--dim);font-size:10px;margin-top:2px}
+  .progress-row { margin-top:10px; display:flex; align-items:center; gap:8px; font-size:10px; color:var(--dim); }
+  #progressBar { flex:1; cursor:pointer; background:var(--border); }
+  #progressBar::-webkit-slider-thumb { background:var(--cyan); box-shadow:0 0 4px rgba(64,224,208,0.3); }
+  .cmd-row { display:flex; gap:6px; }
+  .cmd-input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:3px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:11px; padding:4px 8px; outline:none; transition:border-color 0.15s; }
+  .cmd-input:focus { border-color:var(--green-dim); }
+  .cmd-input::placeholder { color:var(--dim); }
+  .send-btn { background:transparent; border:1px solid var(--green-dim); color:var(--green); font-family:'JetBrains Mono',monospace; font-size:10px; padding:4px 10px; border-radius:3px; cursor:pointer; transition:all 0.12s; }
+  .send-btn:hover { background:rgba(57,255,132,0.08); border-color:var(--green); }
+  #eventLog { height:220px; overflow-y:auto; font-size:10px; line-height:1.5; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  #eventLog::-webkit-scrollbar { width:4px; }
+  #eventLog::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .log-entry { display:flex; gap:8px; padding:2px 0; border-bottom:1px solid rgba(30,46,30,0.5); animation:fadeIn 0.1s ease forwards; }
+  .log-ts{color:var(--dim);flex-shrink:0} .log-dir{flex-shrink:0;width:16px;text-align:center}
+  .log-dir.out{color:var(--green)} .log-dir.in{color:var(--cyan)} .log-dir.sys{color:var(--yellow)}
+  .log-body{flex:1;min-width:0;word-break:break-all;color:var(--text)}
+  .log-clear { background:transparent; border:none; color:var(--dim); font-family:'JetBrains Mono',monospace; font-size:10px; cursor:pointer; transition:color 0.12s; padding:0; }
+  .log-clear:hover { color:var(--red); }
+  @media(max-width:720px){.embed-layout{grid-template-columns:1fr}.ascii-logo{font-size:8px}.terminal{padding:16px 12px 60px}}
 </style>
 </head>
 <body>
 <div class="terminal">
 
   <div class="t-header">
-    <div class="ascii-logo">
- ██╗    ██╗███████╗██████╗  ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗
+    <div class="ascii-logo"> ██╗    ██╗███████╗██████╗  ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗
  ██║    ██║██╔════╝██╔══██╗██╔════╝██║  ██║██╔════╝██╔════╝██║ ██╔╝
  ██║ █╗ ██║█████╗  ██████╔╝██║     ███████║█████╗  ██║     █████╔╝ 
  ██║███╗██║██╔══╝  ██╔══██╗██║     ██╔══██║██╔══╝  ██║     ██╔═██╗ 
  ╚███╔███╔╝███████╗██████╔╝╚██████╗██║  ██║███████╗╚██████╗██║  ██╗
   ╚══╝╚══╝ ╚══════╝╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝</div>
-    <div class="t-tagline">// site diagnostic tool v1.0 — seo · og · security · performance · links</div>
+    <div class="t-tagline">// site diagnostic tool v1.1 — seo · og · security · performance · links · embed tester</div>
   </div>
 
-  <div class="prompt-row">
-    <span class="prompt-prefix">scan&gt;</span>
-    <input class="prompt-input" id="urlInput"
-           placeholder="https://example.com"
-           autocomplete="off" spellcheck="false">
-    <button class="run-btn" id="runBtn" onclick="runScan()">[ RUN ]</button>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('scan')">[ SCAN ]</button>
+    <button class="tab-btn" onclick="switchTab('embed')">[ EMBED TESTER ]</button>
   </div>
 
-  <div id="output"></div>
+  <!-- SCAN TAB -->
+  <div id="tab-scan" class="tab-panel active">
+    <div class="prompt-row">
+      <span class="prompt-prefix">scan&gt;</span>
+      <input class="prompt-input" id="urlInput" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+      <button class="run-btn" id="runBtn" onclick="runScan()">[ RUN ]</button>
+    </div>
+    <div id="output"></div>
+  </div>
+
+  <!-- EMBED TESTER TAB -->
+  <div id="tab-embed" class="tab-panel">
+    <div class="prompt-row" style="margin-bottom:12px">
+      <span class="prompt-prefix">url&gt;</span>
+      <input class="prompt-input" id="embedUrl"
+             placeholder="https://ytembed.vercel.app/embed.html#PLxxxx"
+             autocomplete="off" spellcheck="false">
+      <button class="run-btn" onclick="loadEmbed()">[ LOAD ]</button>
+    </div>
+
+    <div class="embed-options" style="margin-bottom:12px">
+      <span class="size-label">size:</span>
+      <button class="size-btn" onclick="setSize('compact',this)">compact (80px)</button>
+      <button class="size-btn active" onclick="setSize('normal',this)">normal</button>
+      <button class="size-btn" onclick="setSize('full',this)">full (list)</button>
+      <div style="flex:1"></div>
+      <div class="embed-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">no embed loaded</span>
+      </div>
+    </div>
+
+    <div class="embed-layout">
+      <!-- Left: iframe -->
+      <div class="embed-preview-col">
+        <div class="iframe-wrapper size-normal" id="iframeWrapper">
+          <div class="iframe-placeholder" id="iframePlaceholder">
+            load an embed URL to preview it here
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: controls -->
+      <div class="embed-control-col">
+
+        <div class="ctrl-box">
+          <div class="ctrl-section-title">▸ PLAYBACK CONTROL</div>
+          <div class="transport">
+            <button class="t-btn" onclick="sendCmd('prev')"      title="Previous">⏮</button>
+            <button class="t-btn" onclick="sendSeekRel(-10)"     title="-10s">⏪</button>
+            <button class="t-btn play-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause">▶</button>
+            <button class="t-btn" onclick="sendSeekRel(10)"      title="+10s">⏩</button>
+            <button class="t-btn" onclick="sendCmd('next')"      title="Next">⏭</button>
+          </div>
+          <div class="ctrl-row">
+            <span class="ctrl-row-label">vol</span>
+            <input type="range" id="volSlider" min="0" max="100" value="80" oninput="onVolume(this.value)">
+            <span class="ctrl-row-val" id="volVal">80</span>
+          </div>
+          <div class="progress-row">
+            <span id="progressCurrent">0:00</span>
+            <input type="range" id="progressBar" min="0" max="100" value="0">
+            <span id="progressDuration">0:00</span>
+          </div>
+          <div class="now-playing" id="nowPlayingBox" style="display:none">
+            <img id="npThumb" src="" alt="">
+            <div class="np-info">
+              <div class="np-title" id="npTitle">—</div>
+              <div class="np-sub" id="npSub">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ctrl-box">
+          <div class="ctrl-section-title">▸ RAW COMMAND</div>
+          <div style="color:var(--dim);font-size:10px;margin-bottom:6px">JSON postMessage → iframe</div>
+          <div class="cmd-row">
+            <input class="cmd-input" id="rawCmd" placeholder='{"type":"getState"}' autocomplete="off" spellcheck="false">
+            <button class="send-btn" onclick="sendRaw()">SEND</button>
+          </div>
+          <div style="margin-top:8px;color:var(--dim);font-size:10px;line-height:1.7">
+            examples:<br>
+            <span style="color:var(--text)">{"type":"play"}</span><br>
+            <span style="color:var(--text)">{"type":"volume","value":50}</span><br>
+            <span style="color:var(--text)">{"type":"setTrack","index":2}</span><br>
+            <span style="color:var(--text)">{"type":"load","playlist":"PLxxxx"}</span>
+          </div>
+        </div>
+
+        <div class="ctrl-box" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="ctrl-section-title" style="margin-bottom:0">▸ MESSAGE LOG</div>
+            <button class="log-clear" onclick="clearLog()">[ clear ]</button>
+          </div>
+          <div id="eventLog">
+            <div class="log-entry">
+              <span class="log-ts">--:--:--</span>
+              <span class="log-dir sys">●</span>
+              <span class="log-body" style="color:var(--dim)">waiting for embed...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
+// ═══ TAB ════════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ═══ EMBED TESTER ════════════════════════════════════════════
+let embedFrame  = null;
+let embedOrigin = '*';
+let isPlaying   = false;
+let currentDur  = 0;
+let seekDragging = false;
+
+function setSize(s, btn) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('iframeWrapper').className = `iframe-wrapper size-${s}`;
+  if (embedFrame) postToEmbed({ type: 'size', value: s });
+}
+
+function loadEmbed() {
+  let url = document.getElementById('embedUrl').value.trim();
+  if (!url) return;
+  if (!url.startsWith('http')) url = 'https://' + url;
+  try { embedOrigin = new URL(url).origin; } catch { embedOrigin = '*'; }
+
+  const wrapper     = document.getElementById('iframeWrapper');
+  const placeholder = document.getElementById('iframePlaceholder');
+  const old = document.getElementById('embedIframe');
+  if (old) old.remove();
+  placeholder.style.display = 'none';
+
+  const iframe   = document.createElement('iframe');
+  iframe.id      = 'embedIframe';
+  iframe.src     = url;
+  iframe.allow   = 'autoplay; encrypted-media';
+  iframe.setAttribute('allowfullscreen', '');
+  wrapper.appendChild(iframe);
+  embedFrame = iframe;
+
+  setStatus('', 'connecting...');
+  logEvent('sys', 'load → ' + url);
+
+  iframe._connTimeout = setTimeout(() => {
+    if (document.getElementById('statusDot').classList.contains('connected')) return;
+    setStatus('error', 'no response — not a YTEmbed page?');
+    logEvent('sys', 'timeout: no postMessage after 5s');
+  }, 5000);
+}
+
+function postToEmbed(msg) {
+  if (!embedFrame) { logEvent('sys', 'no embed loaded'); return; }
+  try {
+    embedFrame.contentWindow.postMessage(msg, embedOrigin || '*');
+    logEvent('out', JSON.stringify(msg));
+  } catch(e) { logEvent('sys', 'send error: ' + e.message); }
+}
+
+function sendCmd(type, value) {
+  const msg = { type };
+  if (value !== undefined) msg.value = value;
+  postToEmbed(msg);
+}
+
+function sendSeekRel(delta) {
+  postToEmbed({ type: 'seek', relative: true, value: delta });
+}
+
+function togglePlay() {
+  postToEmbed({ type: 'toggle' });
+}
+
+function onVolume(val) {
+  document.getElementById('volVal').textContent = val;
+  postToEmbed({ type: 'volume', value: parseInt(val) });
+}
+
+function sendRaw() {
+  const raw = document.getElementById('rawCmd').value.trim();
+  if (!raw) return;
+  let msg;
+  try { msg = JSON.parse(raw); } catch { logEvent('sys', 'invalid JSON'); return; }
+  postToEmbed(msg);
+}
+
+// progress bar seek
+const pb = document.getElementById('progressBar');
+pb.addEventListener('mousedown',  () => seekDragging = true);
+pb.addEventListener('touchstart', () => seekDragging = true, {passive:true});
+pb.addEventListener('mouseup',    () => { if (seekDragging) { seekDragging = false; const secs = Math.round((pb.value/100)*currentDur); postToEmbed({type:'seek',value:secs}); } });
+pb.addEventListener('touchend',   () => { if (seekDragging) { seekDragging = false; const secs = Math.round((pb.value/100)*currentDur); postToEmbed({type:'seek',value:secs}); } });
+
+// incoming messages
+window.addEventListener('message', e => {
+  if (embedFrame && e.source !== embedFrame.contentWindow) return;
+  const d = e.data;
+  if (!d || typeof d !== 'object') return;
+
+  const dot = document.getElementById('statusDot');
+  if (!dot.classList.contains('connected')) {
+    if (embedFrame?._connTimeout) clearTimeout(embedFrame._connTimeout);
+    setStatus('connected', 'connected — receiving events');
+  }
+
+  logEvent('in', JSON.stringify(d));
+
+  switch (d.type) {
+    case 'trackChange':
+    case 'playlistLoaded': {
+      const track = d.track || d.currentTrack || {};
+      document.getElementById('nowPlayingBox').style.display = 'flex';
+      document.getElementById('npTitle').textContent = track.title || '—';
+      document.getElementById('npSub').textContent   = (d.total ? d.total + ' tracks • ' : '') + (track.author || '');
+      if (track.thumbnail) document.getElementById('npThumb').src = track.thumbnail;
+      if (d.duration) currentDur = d.duration;
+      break;
+    }
+    case 'stateChange': {
+      isPlaying = d.state === 1 || d.state === 'playing';
+      document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+      break;
+    }
+    case 'progress': {
+      const cur = d.current || 0;
+      const dur = d.duration || currentDur || 1;
+      currentDur = dur;
+      document.getElementById('progressCurrent').textContent  = fmtTime(cur);
+      document.getElementById('progressDuration').textContent = fmtTime(dur);
+      if (!seekDragging) pb.value = (cur / dur) * 100;
+      break;
+    }
+  }
+});
+
+function setStatus(cls, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (cls ? ' ' + cls : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+function logEvent(dir, body) {
+  const log = document.getElementById('eventLog');
+  const now = new Date();
+  const ts  = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-ts">${ts}</span><span class="log-dir ${dir}">${dir==='out'?'↑':dir==='in'?'↓':'●'}</span><span class="log-body">${escHtml(body)}</span>`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+  while (log.children.length > 200) log.removeChild(log.firstChild);
+}
+
+function clearLog() { document.getElementById('eventLog').innerHTML = ''; }
+
+function fmtTime(s) {
+  s = Math.round(s);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+document.getElementById('embedUrl').addEventListener('keydown', e => { if(e.key==='Enter') loadEmbed(); });
+document.getElementById('rawCmd').addEventListener('keydown',   e => { if(e.key==='Enter') sendRaw(); });
+
+// ═══ SCAN TAB ════════════════════════════════════════════════
 const out    = document.getElementById('output');
 const urlInp = document.getElementById('urlInput');
 const runBtn = document.getElementById('runBtn');
-
 let scanning = false;
 
-// Enter key
-urlInp.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !scanning) runScan();
-});
+urlInp.addEventListener('keydown', e => { if(e.key==='Enter' && !scanning) runScan(); });
 
-// ── Print helpers ────────────────────────────────────────────────────────────
 function print(text, cls='l-info', delay=0) {
   return new Promise(resolve => {
     setTimeout(() => {
@@ -303,349 +508,159 @@ function print(text, cls='l-info', delay=0) {
       el.className = `line ${cls}`;
       el.innerHTML = text;
       out.appendChild(el);
-      el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      el.scrollIntoView({behavior:'smooth',block:'end'});
       resolve();
     }, delay);
   });
 }
-
-function printDiv(html, delay=0) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = 'line';
-      el.innerHTML = html;
-      out.appendChild(el);
-      el.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      resolve();
-    }, delay);
-  });
+function printDiv(html) {
+  const el = document.createElement('div');
+  el.className = 'line';
+  el.innerHTML = html;
+  out.appendChild(el);
+  el.scrollIntoView({behavior:'smooth',block:'end'});
 }
-
-function badge(status) {
-  if (status === 'PASS') return `<span class="badge-pass">[ PASS ]</span>`;
-  if (status === 'WARN') return `<span class="badge-warn">[ WARN ]</span>`;
-  if (status === 'FAIL') return `<span class="badge-fail">[ FAIL ]</span>`;
-  return `<span class="badge-info">[ INFO ]</span>`;
+function badge(s) {
+  return s==='PASS'?`<span class="badge-pass">[ PASS ]</span>`:s==='WARN'?`<span class="badge-warn">[ WARN ]</span>`:s==='FAIL'?`<span class="badge-fail">[ FAIL ]</span>`:`<span class="badge-info">[ INFO ]</span>`;
 }
+function sep()         { return print('─'.repeat(72),'l-dim'); }
+function section(t,n)  { return print(`\n${n} ${t}`,'l-section'); }
 
-function sep() {
-  return print('─'.repeat(72), 'l-dim');
-}
-
-function section(title, icon='▸') {
-  return print(`\n${icon} ${title}`, 'l-section');
-}
-
-let spinnerEl = null;
-function showSpinner(msg) {
-  spinnerEl = document.createElement('div');
-  spinnerEl.className = 'line l-dim';
-  spinnerEl.innerHTML = `  <span class="spinner">◌</span>  ${msg}`;
+let spinnerEl=null;
+function showSpinner(msg){
+  spinnerEl=document.createElement('div');
+  spinnerEl.className='line l-dim';
+  spinnerEl.innerHTML=`  <span class="spinner">◌</span>  ${msg}`;
   out.appendChild(spinnerEl);
-  spinnerEl.scrollIntoView({ behavior:'smooth', block:'end' });
+  spinnerEl.scrollIntoView({behavior:'smooth',block:'end'});
 }
-function hideSpinner() {
-  if (spinnerEl) { spinnerEl.remove(); spinnerEl = null; }
+function hideSpinner(){if(spinnerEl){spinnerEl.remove();spinnerEl=null;}}
+
+function scoreColor(n){return n>=90?'var(--green)':n>=50?'var(--yellow)':'var(--red)';}
+function scoreBar(n,w=40){
+  const f=Math.round((n/100)*w);const c=scoreColor(n);
+  return `<span style="color:${c};font-size:10px">${'█'.repeat(f)}${'░'.repeat(w-f)}</span> <span style="color:${c};font-weight:600">${n}</span>`;
 }
 
-// ── Score color ──────────────────────────────────────────────────────────────
-function scoreColor(n) {
-  if (n >= 90) return 'var(--green)';
-  if (n >= 50) return 'var(--yellow)';
-  return 'var(--red)';
-}
-
-function scoreBar(n, width=40) {
-  const filled = Math.round((n / 100) * width);
-  const color  = scoreColor(n);
-  const bar    = '█'.repeat(filled) + '░'.repeat(width - filled);
-  return `<span style="color:${color};font-size:10px">${bar}</span> <span style="color:${color};font-weight:600">${n}</span>`;
-}
-
-// ── Main scan ────────────────────────────────────────────────────────────────
 async function runScan() {
   const raw = urlInp.value.trim();
   if (!raw) return;
-
   let url = raw;
   if (!url.startsWith('http')) url = 'https://' + url;
+  try { new URL(url); } catch { await print('  error: invalid URL','l-fail'); return; }
 
-  try { new URL(url); } catch {
-    await print('  error: invalid URL', 'l-fail');
-    return;
-  }
-
-  scanning = true;
-  runBtn.disabled = true;
-  out.innerHTML = '';
-
-  const started = Date.now();
+  scanning=true; runBtn.disabled=true; out.innerHTML='';
+  const started=Date.now();
 
   await print(`$ webcheck --full "${url}"`, 'l-pass');
   await print(`  started at ${new Date().toISOString()}`, 'l-dim');
   await sep();
 
-  // ── 1. SEO + OG ────────────────────────────────────────────────────────────
-  await section('SEO & META TAGS', '01');
+  // 01 SEO
+  await section('SEO & META TAGS','01');
   showSpinner('fetching page metadata...');
   try {
-    const res  = await fetch(`/api/meta?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
+    const data = await fetch(`/api/meta?url=${encodeURIComponent(url)}`).then(r=>r.json());
     hideSpinner();
-
     if (data.error) {
-      await print(`  ${badge('FAIL')}  ${data.error}`, 'l-fail');
+      await print(`  ${badge('FAIL')}  ${data.error}`,'l-fail');
     } else {
-      // Title
-      if (data.title) {
-        const len = data.title.length;
-        const st  = len < 30 ? 'WARN' : len > 60 ? 'WARN' : 'PASS';
-        await print(`  ${badge(st)}  title          "${escHtml(data.title)}" <span class="l-dim">(${len} chars)</span>`);
-        if (st === 'WARN') await print(`            <span class="l-dim">↳ ideal: 30–60 chars</span>`);
-      } else {
-        await print(`  ${badge('FAIL')}  title          <span class="l-fail">missing</span>`);
-      }
-
-      // Description
-      if (data.description) {
-        const len = data.description.length;
-        const st  = len < 70 ? 'WARN' : len > 160 ? 'WARN' : 'PASS';
-        await print(`  ${badge(st)}  description    "${escHtml(truncate(data.description, 80))}" <span class="l-dim">(${len} chars)</span>`);
-        if (st === 'WARN') await print(`            <span class="l-dim">↳ ideal: 70–160 chars</span>`);
-      } else {
-        await print(`  ${badge('FAIL')}  description    <span class="l-fail">missing</span>`);
-      }
-
-      // Canonical
-      if (data.canonical) {
-        await print(`  ${badge('PASS')}  canonical      <span class="l-url">${escHtml(data.canonical)}</span>`);
-      } else {
-        await print(`  ${badge('WARN')}  canonical      <span class="l-warn">not set</span>`);
-      }
-
-      // Lang
-      if (data.lang) {
-        await print(`  ${badge('PASS')}  lang           "${data.lang}"`);
-      } else {
-        await print(`  ${badge('WARN')}  lang           <span class="l-warn">missing on &lt;html&gt;</span>`);
-      }
-
-      // Robots
-      if (data.robots) {
-        const isBlocked = /noindex/i.test(data.robots);
-        await print(`  ${badge(isBlocked ? 'WARN' : 'PASS')}  robots         "${data.robots}"${isBlocked ? ' <span class="l-warn">← page blocked from indexing</span>' : ''}`);
-      } else {
-        await print(`  ${badge('INFO')}  robots         <span class="l-dim">not set (default: index,follow)</span>`);
-      }
-
-      // H1
-      if (data.h1s && data.h1s.length > 0) {
-        const st = data.h1s.length === 1 ? 'PASS' : 'WARN';
-        await print(`  ${badge(st)}  h1 tags        ${data.h1s.length} found${data.h1s.length > 1 ? ' <span class="l-warn">← multiple h1 not recommended</span>' : ''}`);
-        for (const h of data.h1s) {
-          await print(`            <span class="l-dim">↳ "${escHtml(truncate(h, 70))}"</span>`);
-        }
-      } else {
-        await print(`  ${badge('FAIL')}  h1 tags        <span class="l-fail">none found</span>`);
-      }
-
-      // H2 count
-      if (data.h2count !== undefined) {
-        await print(`  ${badge('INFO')}  h2 tags        ${data.h2count} found`);
-      }
+      if(data.title){const l=data.title.length;const st=l<30||l>60?'WARN':'PASS';await print(`  ${badge(st)}  title          "${escHtml(data.title)}" <span class="l-dim">(${l} chars)</span>`);if(st==='WARN')await print(`            <span class="l-dim">↳ ideal: 30–60 chars</span>`);}
+      else await print(`  ${badge('FAIL')}  title          <span class="l-fail">missing</span>`);
+      if(data.description){const l=data.description.length;const st=l<70||l>160?'WARN':'PASS';await print(`  ${badge(st)}  description    "${escHtml(truncate(data.description,80))}" <span class="l-dim">(${l} chars)</span>`);if(st==='WARN')await print(`            <span class="l-dim">↳ ideal: 70–160 chars</span>`);}
+      else await print(`  ${badge('FAIL')}  description    <span class="l-fail">missing</span>`);
+      if(data.canonical) await print(`  ${badge('PASS')}  canonical      <span class="l-url">${escHtml(data.canonical)}</span>`);
+      else await print(`  ${badge('WARN')}  canonical      <span class="l-warn">not set</span>`);
+      if(data.lang) await print(`  ${badge('PASS')}  lang           "${data.lang}"`);
+      else await print(`  ${badge('WARN')}  lang           <span class="l-warn">missing on &lt;html&gt;</span>`);
+      if(data.robots){const b=/noindex/i.test(data.robots);await print(`  ${badge(b?'WARN':'PASS')}  robots         "${data.robots}"${b?' <span class="l-warn">← blocked from indexing</span>':''}`);}
+      else await print(`  ${badge('INFO')}  robots         <span class="l-dim">not set (default: index,follow)</span>`);
+      if(data.h1s&&data.h1s.length>0){const st=data.h1s.length===1?'PASS':'WARN';await print(`  ${badge(st)}  h1 tags        ${data.h1s.length} found${data.h1s.length>1?' <span class="l-warn">← multiple h1 not recommended</span>':''}`);for(const h of data.h1s)await print(`            <span class="l-dim">↳ "${escHtml(truncate(h,70))}"</span>`);}
+      else await print(`  ${badge('FAIL')}  h1 tags        <span class="l-fail">none found</span>`);
+      if(data.h2count!==undefined) await print(`  ${badge('INFO')}  h2 tags        ${data.h2count} found`);
 
       await sep();
-
-      // OG Tags
-      await section('OPEN GRAPH / TWITTER CARD', '02');
-
-      const ogFields = [
-        ['og:title',       data.og?.title,       'FAIL'],
-        ['og:description', data.og?.description,  'WARN'],
-        ['og:image',       data.og?.image,        'WARN'],
-        ['og:type',        data.og?.type,         'WARN'],
-        ['og:url',         data.og?.url,          'WARN'],
-        ['og:site_name',   data.og?.site_name,    'INFO'],
-      ];
-
-      for (const [key, val, fallback] of ogFields) {
-        if (val) {
-          const display = key === 'og:image' || key === 'og:url'
-            ? `<span class="l-url">${escHtml(truncate(val, 70))}</span>`
-            : `"${escHtml(truncate(val, 70))}"`;
-          await print(`  ${badge('PASS')}  ${key.padEnd(16)} ${display}`);
-        } else {
-          await print(`  ${badge(fallback)}  ${key.padEnd(16)} <span class="l-dim">not set</span>`);
-        }
-      }
-
-      // Twitter card
-      const twFields = [
-        ['twitter:card',  data.twitter?.card,  'WARN'],
-        ['twitter:title', data.twitter?.title, 'INFO'],
-        ['twitter:image', data.twitter?.image, 'INFO'],
-      ];
-      for (const [key, val, fallback] of twFields) {
-        if (val) {
-          await print(`  ${badge('PASS')}  ${key.padEnd(16)} "${escHtml(truncate(val, 60))}"`);
-        } else {
-          await print(`  ${badge(fallback)}  ${key.padEnd(16)} <span class="l-dim">not set</span>`);
-        }
-      }
-
-      // OG Preview card
-      if (data.og?.image || data.og?.title) {
+      await section('OPEN GRAPH / TWITTER CARD','02');
+      const ogF=[['og:title',data.og?.title,'FAIL'],['og:description',data.og?.description,'WARN'],['og:image',data.og?.image,'WARN'],['og:type',data.og?.type,'WARN'],['og:url',data.og?.url,'WARN'],['og:site_name',data.og?.site_name,'INFO']];
+      for(const[k,v,fb]of ogF){if(v){const d=k==='og:image'||k==='og:url'?`<span class="l-url">${escHtml(truncate(v,70))}</span>`:`"${escHtml(truncate(v,70))}"`;await print(`  ${badge('PASS')}  ${k.padEnd(16)} ${d}`);}else await print(`  ${badge(fb)}  ${k.padEnd(16)} <span class="l-dim">not set</span>`);}
+      const twF=[['twitter:card',data.twitter?.card,'WARN'],['twitter:title',data.twitter?.title,'INFO'],['twitter:image',data.twitter?.image,'INFO']];
+      for(const[k,v,fb]of twF){if(v)await print(`  ${badge('PASS')}  ${k.padEnd(16)} "${escHtml(truncate(v,60))}"`);else await print(`  ${badge(fb)}  ${k.padEnd(16)} <span class="l-dim">not set</span>`);}
+      if(data.og?.image||data.og?.title){
         await print('');
-        await print('  preview (Discord/WhatsApp):', 'l-dim');
-        await printDiv(`
-          <div class="og-preview">
-            ${data.og.image ? `<img class="og-thumb" src="${escHtml(data.og.image)}" alt="" onerror="this.style.display='none'">` : ''}
-            <div class="og-meta">
-              <div class="og-title">${escHtml(data.og.title || data.title || '')}</div>
-              <div class="og-desc">${escHtml(truncate(data.og.description || data.description || '', 120))}</div>
-              <div class="og-site">${escHtml(data.og.site_name || new URL(url).hostname)}</div>
-            </div>
-          </div>`);
+        await print('  preview (Discord/WhatsApp):','l-dim');
+        printDiv(`<div class="og-preview">${data.og.image?`<img class="og-thumb" src="${escHtml(data.og.image)}" alt="" onerror="this.style.display='none'">`:''}<div class="og-meta"><div class="og-title">${escHtml(data.og.title||data.title||'')}</div><div class="og-desc">${escHtml(truncate(data.og.description||data.description||'',120))}</div><div class="og-site">${escHtml(data.og.site_name||new URL(url).hostname)}</div></div></div>`);
       }
     }
-  } catch(e) {
-    hideSpinner();
-    await print(`  ${badge('FAIL')}  fetch error: ${e.message}`, 'l-fail');
-  }
+  } catch(e){hideSpinner();await print(`  ${badge('FAIL')}  ${e.message}`,'l-fail');}
 
   await sep();
 
-  // ── 2. Security Headers ────────────────────────────────────────────────────
-  await section('SECURITY HEADERS', '03');
+  // 03 Headers
+  await section('SECURITY HEADERS','03');
   showSpinner('checking response headers...');
   try {
-    const res  = await fetch(`/api/headers?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
+    const data = await fetch(`/api/headers?url=${encodeURIComponent(url)}`).then(r=>r.json());
     hideSpinner();
-
-    if (data.error) {
-      await print(`  ${badge('FAIL')}  ${data.error}`, 'l-fail');
-    } else {
-      const checks = data.checks || [];
-      for (const c of checks) {
-        const b = badge(c.status);
-        const val = c.value
-          ? ` <span class="l-dim">${escHtml(truncate(c.value, 60))}</span>`
-          : ` <span class="l-dim">not set</span>`;
-        await print(`  ${b}  ${c.header.padEnd(32)} ${val}`);
-        if (c.note) await print(`            <span class="l-dim">↳ ${c.note}</span>`);
+    if(data.error) await print(`  ${badge('FAIL')}  ${data.error}`,'l-fail');
+    else {
+      for(const c of data.checks||[]){
+        const v=c.value?` <span class="l-dim">${escHtml(truncate(c.value,60))}</span>`:`  <span class="l-dim">not set</span>`;
+        await print(`  ${badge(c.status)}  ${c.header.padEnd(32)}${v}`);
+        if(c.note)await print(`            <span class="l-dim">↳ ${c.note}</span>`);
       }
-
-      const passed = checks.filter(c => c.status === 'PASS').length;
-      const total  = checks.length;
+      const passed=(data.checks||[]).filter(c=>c.status==='PASS').length;
+      const total=(data.checks||[]).length;
       await print('');
-      await print(`  security score: ${passed}/${total} headers present`, passed === total ? 'l-pass' : passed > total/2 ? 'l-warn' : 'l-fail');
+      await print(`  security score: ${passed}/${total} headers present`,passed===total?'l-pass':passed>total/2?'l-warn':'l-fail');
     }
-  } catch(e) {
-    hideSpinner();
-    await print(`  ${badge('FAIL')}  ${e.message}`, 'l-fail');
-  }
+  } catch(e){hideSpinner();await print(`  ${badge('FAIL')}  ${e.message}`,'l-fail');}
 
   await sep();
 
-  // ── 3. PageSpeed ───────────────────────────────────────────────────────────
-  await section('PERFORMANCE — GOOGLE PAGESPEED', '04');
-  showSpinner('running PageSpeed analysis (this may take 10–15s)...');
+  // 04 PageSpeed
+  await section('PERFORMANCE — GOOGLE PAGESPEED','04');
+  showSpinner('running PageSpeed analysis (10–15s)...');
   try {
-    const res  = await fetch(`/api/pagespeed?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
+    const data = await fetch(`/api/pagespeed?url=${encodeURIComponent(url)}`).then(r=>r.json());
     hideSpinner();
-
-    if (data.error) {
-      await print(`  ${badge('WARN')}  ${data.error}`, 'l-warn');
-    } else {
-      const scores = data.scores || {};
-      for (const [cat, val] of Object.entries(scores)) {
-        const st = val >= 90 ? 'PASS' : val >= 50 ? 'WARN' : 'FAIL';
-        await print(`  ${badge(st)}  ${cat.padEnd(18)} ${scoreBar(val)}`);
-      }
-
-      if (data.vitals) {
-        await print('');
-        await print('  core web vitals:', 'l-dim');
-        for (const [k, v] of Object.entries(data.vitals)) {
-          const st = v.rating === 'good' ? 'PASS' : v.rating === 'needs-improvement' ? 'WARN' : 'FAIL';
-          await print(`  ${badge(st)}  ${k.padEnd(18)} ${v.value} <span class="l-dim">(${v.rating})</span>`);
-        }
-      }
+    if(data.error) await print(`  ${badge('WARN')}  ${data.error}`,'l-warn');
+    else {
+      for(const[cat,val]of Object.entries(data.scores||[])){const st=val>=90?'PASS':val>=50?'WARN':'FAIL';await print(`  ${badge(st)}  ${cat.padEnd(18)} ${scoreBar(val)}`);}
+      if(data.vitals){await print('');await print('  core web vitals:','l-dim');for(const[k,v]of Object.entries(data.vitals)){const st=v.rating==='good'?'PASS':v.rating==='needs-improvement'?'WARN':'FAIL';await print(`  ${badge(st)}  ${k.padEnd(18)} ${v.value} <span class="l-dim">(${v.rating})</span>`);}}
     }
-  } catch(e) {
-    hideSpinner();
-    await print(`  ${badge('FAIL')}  ${e.message}`, 'l-fail');
-  }
+  } catch(e){hideSpinner();await print(`  ${badge('FAIL')}  ${e.message}`,'l-fail');}
 
   await sep();
 
-  // ── 4. Broken Links ────────────────────────────────────────────────────────
-  await section('BROKEN LINK SCAN', '05');
+  // 05 Links
+  await section('BROKEN LINK SCAN','05');
   showSpinner('scanning links...');
   try {
-    const res  = await fetch(`/api/links?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
+    const data = await fetch(`/api/links?url=${encodeURIComponent(url)}`).then(r=>r.json());
     hideSpinner();
-
-    if (data.error) {
-      await print(`  ${badge('FAIL')}  ${data.error}`, 'l-fail');
-    } else {
-      const links   = data.links || [];
-      const broken  = links.filter(l => l.status === 'broken');
-      const timeout = links.filter(l => l.status === 'timeout');
-      const ok      = links.filter(l => l.status === 'ok');
-
-      await print(`  ${badge('INFO')}  total links    ${links.length} found, checked ${Math.min(links.length, data.checked || links.length)}`);
-      await print(`  ${badge(ok.length === links.length ? 'PASS' : 'INFO')}  ok             ${ok.length}`);
-      await print(`  ${badge(timeout.length > 0 ? 'WARN' : 'PASS')}  timeout        ${timeout.length}`);
-      await print(`  ${badge(broken.length > 0 ? 'FAIL' : 'PASS')}  broken         ${broken.length}`);
-
-      if (broken.length > 0) {
-        await print('');
-        await print('  broken links:', 'l-fail');
-        for (const l of broken.slice(0, 15)) {
-          await print(`  <span class="l-fail">  ✕ [${l.code || '???'}]</span> <span class="l-url">${escHtml(truncate(l.url, 70))}</span>`);
-        }
-        if (broken.length > 15) {
-          await print(`  <span class="l-dim">  ... and ${broken.length - 15} more</span>`);
-        }
-      }
-
-      if (timeout.length > 0) {
-        await print('');
-        await print('  timeouts:', 'l-warn');
-        for (const l of timeout.slice(0, 5)) {
-          await print(`  <span class="l-warn">  ⏱ </span><span class="l-url">${escHtml(truncate(l.url, 70))}</span>`);
-        }
-      }
+    if(data.error) await print(`  ${badge('FAIL')}  ${data.error}`,'l-fail');
+    else {
+      const links=data.links||[];
+      const broken=links.filter(l=>l.status==='broken');
+      const timeout=links.filter(l=>l.status==='timeout');
+      const ok=links.filter(l=>l.status==='ok');
+      await print(`  ${badge('INFO')}  total links    ${links.length} found, checked ${Math.min(links.length,data.checked||links.length)}`);
+      await print(`  ${badge(ok.length===links.length?'PASS':'INFO')}  ok             ${ok.length}`);
+      await print(`  ${badge(timeout.length>0?'WARN':'PASS')}  timeout        ${timeout.length}`);
+      await print(`  ${badge(broken.length>0?'FAIL':'PASS')}  broken         ${broken.length}`);
+      if(broken.length>0){await print('');await print('  broken links:','l-fail');for(const l of broken.slice(0,15))await print(`  <span class="l-fail">  ✕ [${l.code||'???'}]</span> <span class="l-url">${escHtml(truncate(l.url,70))}</span>`);if(broken.length>15)await print(`  <span class="l-dim">  ... and ${broken.length-15} more</span>`);}
+      if(timeout.length>0){await print('');await print('  timeouts:','l-warn');for(const l of timeout.slice(0,5))await print(`  <span class="l-warn">  ⏱ </span><span class="l-url">${escHtml(truncate(l.url,70))}</span>`);}
     }
-  } catch(e) {
-    hideSpinner();
-    await print(`  ${badge('FAIL')}  ${e.message}`, 'l-fail');
-  }
+  } catch(e){hideSpinner();await print(`  ${badge('FAIL')}  ${e.message}`,'l-fail');}
 
   await sep();
-
-  // ── Summary ────────────────────────────────────────────────────────────────
-  const elapsed = ((Date.now() - started) / 1000).toFixed(1);
-  await print(`\n  scan complete in ${elapsed}s`, 'l-pass');
-  await print(`  $ <span class="cursor"></span>`, 'l-dim');
-
-  scanning = false;
-  runBtn.disabled = false;
+  await print(`\n  scan complete in ${((Date.now()-started)/1000).toFixed(1)}s`,'l-pass');
+  await print(`  $ <span class="cursor"></span>`,'l-dim');
+  scanning=false; runBtn.disabled=false;
 }
 
-// ── Utils ────────────────────────────────────────────────────────────────────
-function escHtml(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function truncate(s, n) {
-  s = String(s || '');
-  return s.length > n ? s.slice(0, n) + '…' : s;
-}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function truncate(s,n){s=String(s||'');return s.length>n?s.slice(0,n)+'…':s;}
 </script>
 </body>
 </html>
